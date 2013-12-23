@@ -1,0 +1,449 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+
+  <title>LLVM/Clang</title>
+
+  <meta name="description" content="Say no to gcc-ism">
+  <meta name="author" content="Muhammad Tauqir Ahmad">
+
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+  <link rel="stylesheet" href="css/reveal.css">
+  <link rel="stylesheet" href="css/theme/default.css" id="theme">
+
+  <!-- For syntax highlighting -->
+  <link rel="stylesheet" href="lib/css/solarized_light.css">
+
+  <!-- If the query includes 'print-pdf', use the PDF print sheet -->
+  <script>
+  document.write( '<link rel="stylesheet" href="css/print/' + ( window.location.search.match( /print-pdf/gi ) ? 'pdf' : 'paper' ) + '.css" type="text/css" media="print">' );
+  </script>
+
+
+  <!--[if lt IE 9]>
+      <script src="lib/js/html5shiv.js"></script>
+      <![endif]-->
+  <style type='text/css'>
+    code {
+      font-family: monospace;
+      background-color: #DDD;
+    }
+  </style>
+</head>
+
+<body>
+<div class="reveal">
+
+  <!-- Any section element inside of this container is displayed as a slide -->
+  <div class="slides">
+
+    <section>
+      <h1 style='text-transform: none;'>LLVM/Clang & GCCism!</h1>
+
+      <section data-markdown>
+      ```c
+      /* Say no to GCCism! */
+      #define USE_NESTED_FUNCTION 0
+
+      #if !USE_NESTED_FUNCTION
+      ...
+      ```
+      </section>
+
+      <section>
+        <h2>What's GCCism?</h2>
+
+        When you do this:
+
+        <pre><code>
+int main(int argc, const char *argv[]) {
+  int foo(int x) {
+    int bar(int y) {
+      int baz(int z) {
+        int qux(int x) {
+          return x + 1;
+        }
+        return qux(0) + z;
+      }
+      return baz(1) + y;
+    }
+    return bar(2) + x;
+  }
+  return foo(argc);
+}
+        </code></pre>
+        
+      </section>
+
+      <section data-markdown>
+        > __Don't do that!__
+
+        - Avoid GCC extensions (nested functions, etc.)
+        - Test with multiple compilers
+        - `-std=c99` as a compiler argument for C for example
+
+      </section>
+    </section>
+
+    <section data-markdown>
+      ## Compiler (infrastucture) was born!
+
+      <section data-markdown>
+        - Started as a research project in ~2000 by Chris Lattner and Vikram Adve
+        - Was released under NCSA (a BSD-style license)
+        - Lattner was hired by Apple in 2005 to work on LLVM for uses in its products
+        - Apparently Apple doesn't like GPL
+        - LLVM/Clang is now widely used in Apple's development systems/tools
+        - FreeBSD also switched to Clang as the default compiler
+        - Modern, well-maintained codebase
+      </section>
+    </section>
+
+    <section>
+      <section data-markdown>
+        ## So what's it about?
+
+        - Provides the LLVM IR and an infrastructure to write a compiler
+        - Implemented as a set of tools and API to work with the IR
+        - Plugin architecture
+        - A backend for each target machine
+        - A frontend for each language
+      </section>
+
+      <section data-markdown>
+        ## IR
+
+        - Provides generic types support
+        - Machine-independant instructions
+        - SSA form
+        - Allows for various metadata to be added to it to help the optimizers
+      </section>
+
+      <section data-markdown>
+        ## IR Example
+
+        ```c
+        int foo(int a, int b, int c) {
+          int r;
+          if ((c & a ? 0 : 1) | (c & b ? 1 : 0))
+            r = a | b | c;
+          else
+            r = 0;
+
+          return r;
+        }
+        ```
+
+        Translates to:
+
+        ```llvm
+        ; Function Attrs: nounwind readnone uwtable
+        define i32 @foo(i32 %a, i32 %b, i32 %c) #0 {
+          %1 = and i32 %c, %a
+          %not. = icmp eq i32 %1, 0
+          %2 = zext i1 %not. to i32
+          %3 = and i32 %c, %b
+          %4 = icmp ne i32 %3, 0
+          %5 = zext i1 %4 to i32
+          %6 = or i32 %2, %5
+          %7 = icmp eq i32 %6, 0
+          br i1 %7, label %11, label %8
+
+        ; &lt;label&gt;:8     ; preds = %0
+          %9 = or i32 %b, %a
+          %10 = or i32 %9, %c
+          br label %11
+
+        ; &lt;label&gt;:11    ; preds = %0, %8
+          %r.0 = phi i32 [ %10, %8 ], [ 0, %0 ]
+          ret i32 %r.0
+        }
+        ```
+      </section>
+
+      <section data-markdown>
+        ## DAG
+
+        - Directed-Acyclic-Graph representing the SSA form of the IR
+        - Nodes represent values/operations
+        - Directed edges represent use of a value.
+        - Goes through various _legalization_ passes
+        - A pass produces a (potentially modified) DAG on which the next pass can
+          be applied
+        - Finally produces a linear representation of all the machine operations
+          and/or values to be produced
+
+      </section>
+
+      <section data-markdown>
+        ## Plugins
+        - Any number of _plugins_ can be added to the basic LLVM
+        - Clang is a plugin which works as a C/C++/Obj-C frontend
+        - Dragonegg is another example (it works as a backend and optimizer
+          for GCC)
+        - LLDB is a debugger which uses Clang and LLVM APIs so it always has
+          access to backends and frontends in Clang/LLVM
+        - Also allows JIT'ing code while debugging
+      </section>
+    </section>
+
+    <section>
+      <h2>Putting it together</h2>
+
+      <section data-markdown>
+        ![LLVM Pipeline](images/clang_pipeline.png "LLVM Pipeline")
+      </section>
+
+      <section data-markdown>
+        ### Optimizations
+        - Optimizer only needs to know how to optimize the LLVM IR
+        - Implemented as a series of passes
+        - Passes can be added from plugins
+        - The metadata is preserved for other passes to use
+      </section>
+    </section>
+
+    <section>
+      <h2>My contributions to LLVM</h2>
+
+      <section data-markdown>
+        ### IR
+        - Added a few optimizations to the IR
+        - Examples:
+        ```
+        (or (bool? A : B) (bool? C : D)) -> (bool? (or A C) (or C D))
+        ```
+        ```
+        (and (sext bool to A), B) -> (select bool, B, 0)
+        (and ~(sext bool to A), B) -> (select bool, 0, B)
+        ```
+        ```
+        (sub 0, (zext bool to A)) -> (sext bool to A)
+        (sub 0, (sext bool to A)) -> (zext bool to A)
+        ```
+        - Worked on the vectorizer (vector dependencies etc.)
+        - Worked on adding support for Intel MPX (Memory Protection Extensions)
+      </section>
+
+      <section data-markdown>
+        ### X86 Backend
+        - Added a few optimizations (mainly to Intel AVX/AVX2 instruction
+          extensions)
+           - AVX* is Advanced Vector Extensions
+           - Allows wide parallel registers/instructions
+        - Examples:
+            - For sign-extending vectors:
+        ```
+        vpmovxzbd/wd + shift-left + shift-right -> vpmovsxbd/wd
+        ```
+        - Worked on adding support for Intel MPX
+        - Worked on adding support for Haswell architecture's instruction set
+      </section>
+    </section>
+
+    <section>
+      <h2>Why even bother?</h2>
+
+      <section data-markdown>
+        > GCC already does the job!
+      </section>
+
+      <section data-markdown>
+        ### License
+        
+        - The BSD-style license used by LLVM has fewer restrictions
+        - Much easier to include it as part of commercial software
+      </section>
+
+      <section data-markdown>
+        ### Modern Design
+        
+        - The codebase is very modular as it as designed to be so from the beginning
+        - As a result, cleaner code
+        - Simpler to extend and modify - the learning curve to start contributing
+          patches is very short
+        - I was able to make commits in the first week or so at Intel co-op
+        - Extensive unit tests which are easily runnable (`make test`)
+      </section>
+
+      <section data-markdown>
+        ### Extensibility
+        
+        - The modular design allows for easy use of plugins
+        - JIT'ing is easy thanks to the LLVM IR
+        - Examples:
+            - The OpenGL pipline on MacOS provides both GPU and CPU rendering by leaving graphics code in LLVM IR
+            - During runtime, if an instruction can be run on GPU, it is passed to the GPU
+            - If the GPU doesn't support a feature, the same code can be run through shims on the CPU
+            - `llvmpipe` is another example
+      </section>
+
+      <section data-markdown>
+        ### Performance
+
+        - Compile-time performance for Clang is dramatically better than GCC
+            - Chromium, ImageMagick, PHP, compile much faster
+        - Produces smaller binaries than GCC
+            - QT, Chromium are examples
+        - Performance is on par with GCC
+            - Phoronix has a benchmarked the two compilers
+            - Clang is lacking OpenMP support
+      </section>
+
+      <section data-markdown>
+        ### Diagnostics
+
+        - Clang produces much smarter diagnostics
+            - Can even do color highlighting on the diagnostic prints
+            - Better preservation of metadata plays a role in these better diagnostics
+        - GCC catching up (with colors in 4.9)
+      </section>
+    </section>
+
+    <section>
+      <h2>LLVM, WindRiver and Me</h2>
+
+      <section data-markdown>
+        ### _Side project_
+        Trying to get yocto project to build using Clang instead of GCC!
+        </p>
+      </section>
+
+      <section data-markdown>
+        ### Objectives
+        1. Get Clang to be built by bitbake
+        2. Allow for simple configuration to switch toolchains
+        3. Get poky-tiny core-image-minimal to be built by Clang
+      </section>
+
+      <section data-markdown>
+        ### Progress
+        1. Building Clang as a bitbake package was easy - based on llvm3.3 recipe
+           from meta-oe
+        2. Mark Hatle's work on
+           [Adding a secondary toolchain](http://openembedded.org/wiki/Adding_a_secondary_toolchain)
+           made this easy to achieve.
+            - Simple task of setting the right `TOOLCHAIN` variables
+            - [meta-tc-llvm](https://github.com/mtahmed/meta-tc-llvm): A secondary
+              llvm toolchain layer that can be used to enable the secondary toolchain
+        3. Mainly getting failing packages to compile using Clang/LLVM with additional
+           set of patches
+            - Most of the failures are because of GCC extensions that are unsupported
+              in Clang
+            - Busybox is also failing to compile correctly (and causing runtime errors and
+              probably kernel crashes as well)
+      </section>
+
+      <section data-markdown>
+        ### More progress!
+        - In total, 115 packages need to be built for `core-image-minimal` + `linux-yocto-tiny`
+        - 103 of them are building fine with clang
+        - 12 of them need to be built using gcc (these include the linux kernel, gcc,
+           eglibc, elfutils etc.)
+      </section>
+
+      <section data-markdown>
+        ### TODO
+        1. Get the linux kernel to compile using Clang
+            - LLVMLinux project aims to compile the linux kernel using Clang
+            - A set of patches from LLVMLinux project should hopefully help us
+              compile the kernel
+        2. Investigate fixing failing packages
+        3. Investigate busybox failures
+      </section>
+    </section>
+
+    <section data-markdown>
+      ## Links
+      - [meta-tc-llvm](https://github.com/mtahmed/meta-tc-llvm): LLVM/Clang as
+        a secondary toolchain
+      - [poky-clang](https://github.com/mtahmed/poky): Poky + a set of patches
+        to compile it using Clang
+      - [DAGs](https://wiki.aalto.fi/pages/viewpage.action?pageId=75666147):
+        An explanation various stages of DAGs
+      - [LLVMLinux](http://llvm.linuxfoundation.org/index.php/Main_Page):
+        Project that aims to compile the linux kernel using Clang.
+      - [LLVM IR Language Reference](http://llvm.org/docs/LangRef.html)
+      - [reveal.js](https://github.com/hakimel/reveal.js): Used to make this
+        presentation
+    </section>
+
+    <section>
+      <h1>K thanks bye!</h1>
+      Muhammad Tauqir Ahmad
+      <br />
+      <a href='http://csc.uwaterloo.ca/~mtahmed'>csc.uwaterloo.ca/~mtahmed</a>
+    </section>
+
+  </div>
+
+  <div style="position: absolute; bottom: 5px; left: 5px; font: 14px sans-serif;
+              vertical-align: baseline; display: block; color: #444; z-index: 1000;">
+    <p>Say no to GCCism &bull; Wind River December Tech Talk &bull; Muhammad Tauqir Ahmad /
+    <img src='images/github_icon.png' width='18px' height='18px' style='vertical-align: bottom; padding: 0;' />
+    <a href="https://github.com/mtahmed" title="Github">
+      @mtahmed
+    </a>
+    </p>
+  </div>
+
+</div>
+
+<script src="lib/js/head.min.js"></script>
+<script src="js/reveal.min.js"></script>
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+<script src='zoom.js/js/zoom.js'></script>
+
+<script>
+// Full list of configuration options available here:
+// https://github.com/hakimel/reveal.js#configuration
+Reveal.initialize({
+controls: true,
+progress: true,
+history: true,
+center: false,
+transitionSpeed: 'fast',
+
+theme: Reveal.getQueryHash().theme || 'solarized', // available themes are in /css/theme
+transition: Reveal.getQueryHash().transition || 'default', // default/cube/page/concave/zoom/linear/fade/none
+
+// Parallax scrolling
+// parallaxBackgroundImage: 'https://s3.amazonaws.com/hakim-static/reveal-js/reveal-parallax-1.jpg',
+// parallaxBackgroundSize: '2100px 900px',
+
+// Optional libraries used to extend on reveal.js
+dependencies: [
+{ src: 'lib/js/classList.js', condition: function() { return !document.body.classList; } },
+{ src: 'plugin/markdown/marked.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+{ src: 'plugin/markdown/markdown.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+{ src: 'plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } },
+//{ src: 'plugin/zoom-js/zoom.js', async: true, condition: function() { return !!document.body.classList; } },
+{ src: 'plugin/notes/notes.js', async: true, condition: function() { return !!document.body.classList; } }
+]
+});
+</script>
+
+<script>
+$(document).ready(function() {
+    setTimeout(
+      function() {
+        $('code').click(function(event) {
+          event.preventDefault();
+          zoom.to({element: event.target});
+        })
+        $('img').click(function(event) {
+          event.preventDefault();
+          zoom.to({element: event.target});
+        })
+      }, 100);
+})
+</script>
+
+</body>
+</html>

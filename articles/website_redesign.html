@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html>
+  <head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="">
+
+  <title>Muhammad Tauqir Ahmad | website redesign</title>
+  <meta name="description" content="Honours Computer Science Student at University of Waterloo. And an amateur photographer.">
+  <meta name="keywords"    content="website,hyde,redesign">
+  <meta name="author"      content="Muhammad Tauqir Ahmad">
+
+  <!--  Mobile viewport optimized: j.mp/bplateviewport -->
+  <meta name="viewport" content="">
+      <!--<link rel="stylesheet" href="https://github.com/themes/minimal/stylesheets/styles.css">-->
+    <link rel="stylesheet" href="/~mtahmed/media/js/styles.css">
+    <link rel="stylesheet" href="/~mtahmed/media/css/syntax.css">
+    <style>
+      body {
+        width: 800px;
+        margin-left: auto;
+        margin-right: auto;
+        overflow-y: scroll;
+      }
+      hr {
+        margin-left: 0;
+        width: 90%;
+        border-top: 1px solid #DDD; !important
+        border-left: 0;
+        border-right: 0;
+        border-bottom: 0;
+      }
+      div.aboutme {
+        margin-bottom: 24px;
+      }
+      div.aboutme h1 {
+        font-size: 18px;
+        margin-left: auto;
+        margin-right: auto;
+        margin: 0;
+        padding: 0;
+      }
+      div.aboutme h1 a {
+        color: #494949; font-weight: bold;
+        margin: 0;
+        padding: 0;
+      }
+      div.aboutme h2 {
+        color: #494949; font-weight: normal;
+        font-size: 10px;
+        margin: 0;
+        padding: 0;
+      }
+      div.header {
+        position: fixed;
+        padding: 0;
+        margin: 0;
+        zoom: 1.2;
+      }
+      div.header h1 a {
+        color: #494949;
+        font-weight: bold;
+      }
+      div.header h3 {
+        margin: 0;
+        margin-bottom: 5px;
+      }
+      div.header li {
+        margin-bottom: 5px;
+      }
+      div.header li small {
+        padding-top: 2px;
+      }
+      div.header p.view {
+        margin-bottom: 5px;
+      }
+      div.header p.view small {
+        padding-top: 2px;
+      }
+      div.header ul {
+        list-style-type: none;
+        margin: 0;
+        padding: 0;
+      }
+      section p {
+        margin-top: 10px;
+      }
+      section h1 {
+        margin-bottom: 15px;
+      }
+      section h2 { margin-bottom: 10px; }
+      section h2 { margin-bottom: 10px; }
+      footer { bottom: 20px; }
+      footer p { margin-bottom: 5px; }
+      .half-width {
+        width: 200px;
+        list-style: none;
+        padding: 5px;
+        margin: 7px;
+        margin-bottom: 10px;
+      }
+      .half-width h4 {
+        margin-bottom: 5px;
+      }
+      .half-width ul {
+        padding-left: 0;
+      }
+      .half-width ul li {
+        list-style: inside;
+        font-size: 15px;
+      }
+      .clear-fix {
+        clear: both;
+      }
+      code, .codehilite pre {
+        font-family: Terminus, monospace;
+        color: #666;
+      }
+    </style>
+    <script src="/~mtahmed/media/js/scale.fix.js"></script>
+    <body id="website_redesign">
+        <div class='header'>
+                <div class='aboutme'>
+          <h1><a href="/~mtahmed/">Muhammad Tauqir Ahmad</a></h1>
+          <h2>4A Computer Science Honours (Co-op)</h2>
+          <h2>Combinatorics and Optimizations Minor</h2>
+        </div>
+        <ul>
+          <li>
+          <a href="/~mtahmed/resume.html">
+            Resume<br />
+            <small style='display:block;'>My Doings</small>
+          </a>
+          </li>
+          <li>
+          <a href="/~mtahmed/projects.html">
+            Open Source Projects
+            <small style='display:block;'>My Coding</small>
+          </a>
+          </li>
+          <li>
+          <a href="/~mtahmed/articles">
+            Articles
+            <small style='display:block;'>My Writings</small>
+          </a>
+          </li>
+          <li>
+          <a href="/~mtahmed/talks">
+            Talks
+            <small style='display:block;'>My Speaking</small>
+          </a>
+          </li>
+          <li>
+          <a href="/~mtahmed/photography">
+            Photography
+            <small style='display:block;'>My Snapping</small>
+          </a>
+          </li>
+        </ul>
+
+        <br />
+
+        <h3>On the Web</h3>
+        <ul>
+          <li>
+          <a href="http://github.com/mtahmed" target="tab">GitHub</a>
+          </li>
+          <li>
+          <a href="https://bitbucket.org/mtahmed" target="tab">Bitbucket</a>
+          </li>
+          <li>
+          <a href="http://www.flickr.com/photos/muhammadtauqirahmad" target="tab">Flickr</a>
+          </li>
+          <li>
+          <a href="http://500px.com/muhammadtauqirahmad" target="tab">500px</a>
+          </li>
+        </ul>
+        
+
+      </div>
+
+      <section id="main">
+        <h1 id="website-redesign">Website Redesign</h1>
+<p>I recently changed my website from a bunch of hand-stiched webpages dynamically
+generated by python scripts to using <a href="https://github.com/hyde/hyde">Hyde</a>.</p>
+<h2 id="old">Old</h2>
+<p>My "old" website was dynamically generated using a number of python scripts
+used the python <code>cgi</code> module to get passed in arguments.
+These included the main landing page, <code>index.py</code>, a script to fetch the article,
+<code>get_article.py</code>, a script to fetch the gallery, <code>gallery.py</code> and so on.
+The articles were in a repository on bitbucket as markdown files with the script
+below to generate the html from the markdown.</p>
+<div class="codehilite"><pre><span class="k">for </span>file in *.markdown; <span class="k">do</span>
+<span class="k">  </span><span class="nv">file</span><span class="o">=</span><span class="k">$(</span><span class="nb">echo</span> <span class="nv">$file</span> | sed -e <span class="s1">&#39;s/.markdown$//&#39;</span><span class="k">)</span>
+  <span class="nb">echo </span>markdown_py -x codehilite -f <span class="k">${</span><span class="nv">file</span><span class="k">}</span>.html <span class="k">${</span><span class="nv">file</span><span class="k">}</span>.markdown
+  markdown_py -x codehilite -f <span class="k">${</span><span class="nv">file</span><span class="k">}</span>.html <span class="k">${</span><span class="nv">file</span><span class="k">}</span>.markdown
+<span class="k">done</span>
+</pre></div>
+
+
+<p>At one point, there was a security hole in my <code>get_article.py</code> script which
+the csc admin asked me to fix. Such problems a common with dynamically generated
+websites.
+The old website was also missing other <em>goodies</em> that I desired like
+"common look and feel" of the webpages, templating,
+etc. that weren't that easy to achieve (and maintain/update/change) with the
+hand-stiched pages.</p>
+<h2 id="new">New</h2>
+<p>I started looking at Jekyll but there weren't any nice themese for it
+(or at least none that I found satisfactory) but then I came across Hyde and
+found this elegant, minimalist and best of all, opensource theme
+by Jake VanderPlas <a href="http://www.astro.washington.edu/users/vanderplas/">vanderplas</a>.
+From there, it took me a couple of hours to modify it to my needs, add a blog,
+add a markdown + code highlighting filter to it and I was done.</p>
+<p>The code for my "new" website is being hosted at <a href="https://github.com/mtahmed/">github</a>.
+Now all I need to do to add a new article is ...</p>
+<div class="codehilite"><pre>vim content/blog/website_redesign.html
+hyde gen -r
+hyde -v publish -p ssh -c production.yaml
+</pre></div>
+
+
+<p>... and hyde generates my website, <strong>and</strong> uploads it to my csclub webspace.</p>                <div>
+                    <a href='/~mtahmed/tags/website.html'><small>#website</small></a>
+                    <a href='/~mtahmed/tags/hyde.html'><small>#hyde</small></a>
+                    <a href='/~mtahmed/tags/redesign.html'><small>#redesign</small></a>
+                  </div>
+              </section>
+
+            <footer>
+      <p>
+      <small>
+        Built with <a href="http://hyde.github.io/">Hyde</a> &mdash;
+        Layout adapted from <a href="https://github.com/jakevdp/website">jakevdp</a>.
+      </small>
+      </p>
+      </footer>
+          
+        <script type="text/javascript">
+      var _gauges = _gauges || [];
+      (function() {
+        var t   = document.createElement('script');
+        t.type  = 'text/javascript';
+        t.async = true;
+        t.id    = 'gauges-tracker';
+        t.setAttribute('data-site-id', '4eb74c9f613f5d3567000004');
+        t.src = '//secure.gaug.es/track.js';
+        var s = document.getElementsByTagName('script')[0];
+        s.parentNode.insertBefore(t, s);
+      })();
+    </script>
+        <script src="//ajax.googleapis.com/ajax/libs/jquery/1.6.2/jquery.min.js"></script>
+    <script>window.jQuery || document.write('<script src="js/libs/jquery-1.6.2.min.js"><\/script>')</script>
+    
+        <script type='text/javascript'>
+    var _gaq = [['_setAccount', 'UA-45344849-1'], ['_trackPageview']];
+    (function(d, t) {
+    var g = d.createElement(t),
+        s = d.getElementsByTagName(t)[0];
+    g.async = true;
+    g.src = ('https:' == location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    s.parentNode.insertBefore(g, s);
+    })(document, 'script');
+</script>
+    
+    
+  </body>
+</html>

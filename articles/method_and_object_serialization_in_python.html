@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html>
+  <head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="">
+
+  <title>Muhammad Tauqir Ahmad | object serialization in python</title>
+  <meta name="description" content="Honours Computer Science Student at University of Waterloo. And an amateur photographer.">
+  <meta name="keywords"    content="python,serialization,json">
+  <meta name="author"      content="Muhammad Tauqir Ahmad">
+
+  <!--  Mobile viewport optimized: j.mp/bplateviewport -->
+  <meta name="viewport" content="">
+      <!--<link rel="stylesheet" href="https://github.com/themes/minimal/stylesheets/styles.css">-->
+    <link rel="stylesheet" href="/~mtahmed/media/js/styles.css">
+    <link rel="stylesheet" href="/~mtahmed/media/css/syntax.css">
+    <style>
+      body {
+        width: 800px;
+        margin-left: auto;
+        margin-right: auto;
+        overflow-y: scroll;
+      }
+      hr {
+        margin-left: 0;
+        width: 90%;
+        border-top: 1px solid #DDD; !important
+        border-left: 0;
+        border-right: 0;
+        border-bottom: 0;
+      }
+      div.aboutme {
+        margin-bottom: 24px;
+      }
+      div.aboutme h1 {
+        font-size: 18px;
+        margin-left: auto;
+        margin-right: auto;
+        margin: 0;
+        padding: 0;
+      }
+      div.aboutme h1 a {
+        color: #494949; font-weight: bold;
+        margin: 0;
+        padding: 0;
+      }
+      div.aboutme h2 {
+        color: #494949; font-weight: normal;
+        font-size: 10px;
+        margin: 0;
+        padding: 0;
+      }
+      div.header {
+        position: fixed;
+        padding: 0;
+        margin: 0;
+        zoom: 1.2;
+      }
+      div.header h1 a {
+        color: #494949;
+        font-weight: bold;
+      }
+      div.header h3 {
+        margin: 0;
+        margin-bottom: 5px;
+      }
+      div.header li {
+        margin-bottom: 5px;
+      }
+      div.header li small {
+        padding-top: 2px;
+      }
+      div.header p.view {
+        margin-bottom: 5px;
+      }
+      div.header p.view small {
+        padding-top: 2px;
+      }
+      div.header ul {
+        list-style-type: none;
+        margin: 0;
+        padding: 0;
+      }
+      section p {
+        margin-top: 10px;
+      }
+      section h1 {
+        margin-bottom: 15px;
+      }
+      section h2 { margin-bottom: 10px; }
+      section h2 { margin-bottom: 10px; }
+      footer { bottom: 20px; }
+      footer p { margin-bottom: 5px; }
+      .half-width {
+        width: 200px;
+        list-style: none;
+        padding: 5px;
+        margin: 7px;
+        margin-bottom: 10px;
+      }
+      .half-width h4 {
+        margin-bottom: 5px;
+      }
+      .half-width ul {
+        padding-left: 0;
+      }
+      .half-width ul li {
+        list-style: inside;
+        font-size: 15px;
+      }
+      .clear-fix {
+        clear: both;
+      }
+      code, .codehilite pre {
+        font-family: Terminus, monospace;
+        color: #666;
+      }
+    </style>
+    <script src="/~mtahmed/media/js/scale.fix.js"></script>
+    <body id="method_and_object_serialization_in_python">
+        <div class='header'>
+                <div class='aboutme'>
+          <h1><a href="/~mtahmed/">Muhammad Tauqir Ahmad</a></h1>
+          <h2>4A Computer Science Honours (Co-op)</h2>
+          <h2>Combinatorics and Optimizations Minor</h2>
+        </div>
+        <ul>
+          <li>
+          <a href="/~mtahmed/resume.html">
+            Resume<br />
+            <small style='display:block;'>My Doings</small>
+          </a>
+          </li>
+          <li>
+          <a href="/~mtahmed/projects.html">
+            Open Source Projects
+            <small style='display:block;'>My Coding</small>
+          </a>
+          </li>
+          <li>
+          <a href="/~mtahmed/articles">
+            Articles
+            <small style='display:block;'>My Writings</small>
+          </a>
+          </li>
+          <li>
+          <a href="/~mtahmed/talks">
+            Talks
+            <small style='display:block;'>My Speaking</small>
+          </a>
+          </li>
+          <li>
+          <a href="/~mtahmed/photography">
+            Photography
+            <small style='display:block;'>My Snapping</small>
+          </a>
+          </li>
+        </ul>
+
+        <br />
+
+        <h3>On the Web</h3>
+        <ul>
+          <li>
+          <a href="http://github.com/mtahmed" target="tab">GitHub</a>
+          </li>
+          <li>
+          <a href="https://bitbucket.org/mtahmed" target="tab">Bitbucket</a>
+          </li>
+          <li>
+          <a href="http://www.flickr.com/photos/muhammadtauqirahmad" target="tab">Flickr</a>
+          </li>
+          <li>
+          <a href="http://500px.com/muhammadtauqirahmad" target="tab">500px</a>
+          </li>
+        </ul>
+        
+
+      </div>
+
+      <section id="main">
+        <h1 id="method-and-object-serialization-in-python">Method and object serialization in python</h1>
+<p>While working on my personal <a href="https://bitbucket.org/mtahmed/distributed_system_python">distributed system project</a>,
+I came across the problem of serializing the <em>methods</em> of the task units to be
+assigned to the slave nodes for them to work on. The idea is that the "way the
+data needs to be processed" is also sent to the slave and not just the data that
+needs to be processed.</p>
+<p>The serialization scheme took some time to "implement in my head". The reason
+being that I had to look carefully to see if it was possible to use some library
+for python to serialize the objects. In particular, I need to serialize a task
+unit and send it to a slave (from the master node). Now the complication here is
+that the libraries provided by Python (e.g. pickle) can only serialize an
+object to its "representation" and such libraries assume that the receiving end
+will already have an idea of what this object is. In other words, they serialize
+only the information about the metadata of a particular instance of an object.
+For example if there as an object with a method inside it, then if the object
+is serialized and sent over the wire to another machine which doesn't define the
+exact same class, then the method will not be uncpickled (which is undesirable for
+my purposes).</p>
+<p>So here's the method I came up with to "truly" serialize all the functionality
+of an object assuming we already know the structure of the object:
+First, I extract the code for the methods that I want to serialize from the
+object like so:</p>
+<div class="codehilite"><pre><span class="kn">import</span> <span class="nn">inspect</span>
+
+<span class="kn">import</span> <span class="nn">taskunit</span>
+
+<span class="c"># Set the data and the processor.</span>
+<span class="n">tu</span> <span class="o">=</span> <span class="n">taskunit</span><span class="o">.</span><span class="n">TaskUnit</span><span class="p">(</span><span class="s">&quot;hello&quot;</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">s</span><span class="p">:</span> <span class="k">print</span><span class="p">(</span><span class="n">s</span><span class="p">))</span>
+
+<span class="n">method</span> <span class="o">=</span> <span class="n">tu</span><span class="o">.</span><span class="n">processor</span>
+<span class="c"># Get the source of the code as a string</span>
+<span class="n">method_code</span> <span class="o">=</span> <span class="n">inspect</span><span class="o">.</span><span class="n">getsource</span><span class="p">(</span><span class="n">method</span><span class="p">)</span>
+</pre></div>
+
+
+<p>This gives us the source code of the required method.
+Then I get all the other attributes of interest from the object and dump them
+as a dictionary (including the data).
+Then I construct a new dictionary with the following format:</p>
+<div class="codehilite"><pre><span class="p">{</span>
+  <span class="s">&#39;processor&#39;</span> <span class="p">:</span> <span class="s">&#39;def processor(x):</span><span class="se">\n</span><span class="s">    print(x * x)&#39;</span><span class="p">,</span>
+  <span class="s">&#39;data&#39;</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span>
+  <span class="s">&#39;state&#39;</span><span class="p">:</span> <span class="s">&#39;DEFINED&#39;</span>
+  <span class="o">...</span><span class="p">,</span>
+  <span class="o">...</span><span class="p">,</span>
+  <span class="o">...</span>
+<span class="p">}</span>
+</pre></div>
+
+
+<p>This dictionary is then dumped as a JSON string and sent to the Slave (maybe
+after compression). The slave then reads the JSON into Python lists/dictionaries
+and extracts the required strings/values from the lists/dictionaries.
+In particular, it extracts the processor's code. After doing so, it
+"reconstructs" the TaskUnit object like so:</p>
+<div class="codehilite"><pre><span class="n">processor_string</span> <span class="o">=</span> <span class="n">decoded_json</span><span class="p">[</span><span class="s">&#39;processor&#39;</span><span class="p">]</span>
+<span class="n">data</span> <span class="o">=</span> <span class="n">decoded_json</span><span class="p">[</span><span class="s">&#39;data&#39;</span><span class="p">]</span>
+<span class="n">state_string</span> <span class="o">=</span> <span class="n">decoded_json</span><span class="p">[</span><span class="s">&#39;state&#39;</span><span class="p">]</span>
+
+<span class="k">exec</span><span class="p">(</span><span class="n">processor_string</span><span class="p">)</span>
+<span class="n">reconstructed_task_unit</span> <span class="o">=</span> <span class="n">TaskUnit</span><span class="p">(</span><span class="n">data_string</span><span class="p">,</span> <span class="n">processor</span><span class="p">)</span>
+<span class="n">reconstructed_task_unit</span><span class="o">.</span><span class="n">state</span> <span class="o">=</span> <span class="n">state_string</span>
+</pre></div>
+
+
+<p>The important part in this code above is the <code>exec(...)</code> call which basically
+executes the code in the <code>processor_string</code> variable and defines the method
+processor in the local scope. Then all we have to do is to create a new TaskUnit
+and provide it with this processor and the data and that's basically it. If
+there are other attributes that we also need to serialize, then we can also send
+those through the JSON string over the network and decode on the Slave's end in
+the same way as above.</p>
+<h1 id="conclusion">Conclusion</h1>
+<p>Although in the examples given above, the method is very "rigid" and does not permit
+for automated serialization of "any" given object, its easy to observe that this method
+can easily be extended serialize "any" object. The trick in that case would be to
+iterate over the methods of the object and serialize them through the method described
+above (by extracting their code). Then iterate over the attributes and extract those too
+(making sure that either the attributes are primitive types or that the user has explicitly
+request all the objects inside the object to also be serialized).</p>
+<p>This method can also be extended to include all the variables in the global and local scope of the
+object into the serialized representation. Compression can then be applied on the resulting JSON
+if transfer speed over the internet is an issue that we are considering.</p>                <div>
+                    <a href='/~mtahmed/tags/python.html'><small>#python</small></a>
+                    <a href='/~mtahmed/tags/serialization.html'><small>#serialization</small></a>
+                    <a href='/~mtahmed/tags/json.html'><small>#json</small></a>
+                  </div>
+              </section>
+
+            <footer>
+      <p>
+      <small>
+        Built with <a href="http://hyde.github.io/">Hyde</a> &mdash;
+        Layout adapted from <a href="https://github.com/jakevdp/website">jakevdp</a>.
+      </small>
+      </p>
+      </footer>
+          
+        <script type="text/javascript">
+      var _gauges = _gauges || [];
+      (function() {
+        var t   = document.createElement('script');
+        t.type  = 'text/javascript';
+        t.async = true;
+        t.id    = 'gauges-tracker';
+        t.setAttribute('data-site-id', '4eb74c9f613f5d3567000004');
+        t.src = '//secure.gaug.es/track.js';
+        var s = document.getElementsByTagName('script')[0];
+        s.parentNode.insertBefore(t, s);
+      })();
+    </script>
+        <script src="//ajax.googleapis.com/ajax/libs/jquery/1.6.2/jquery.min.js"></script>
+    <script>window.jQuery || document.write('<script src="js/libs/jquery-1.6.2.min.js"><\/script>')</script>
+    
+        <script type='text/javascript'>
+    var _gaq = [['_setAccount', 'UA-45344849-1'], ['_trackPageview']];
+    (function(d, t) {
+    var g = d.createElement(t),
+        s = d.getElementsByTagName(t)[0];
+    g.async = true;
+    g.src = ('https:' == location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    s.parentNode.insertBefore(g, s);
+    })(document, 'script');
+</script>
+    
+    
+  </body>
+</html>
